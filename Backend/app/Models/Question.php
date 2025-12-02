@@ -13,6 +13,7 @@ class Question extends Model
     protected $fillable = [
         'order',
         'question_text',
+        'subtitle',
         'question_key',
     ];
 

@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminAnalyticsController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\ComparisonController;
 use App\Http\Controllers\InteractionController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\PerfumeController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\SessionController;
@@ -20,6 +21,7 @@ Route::post('/answers', [AnswerController::class, 'store']);
 Route::post('/track', [InteractionController::class, 'track']);
 
 Route::get('/perfumes', [PerfumeController::class, 'index']);
+Route::get('/questions', [QuestionController::class, 'index']);
 
 Route::post('/comparisons', [ComparisonController::class, 'store']);
 
