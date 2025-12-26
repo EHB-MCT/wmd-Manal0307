@@ -29,3 +29,5 @@ Route::get('/recommendations/{uid}', [RecommendationController::class, 'get']);
 
 Route::get('/admin/overview', [AdminAnalyticsController::class, 'overview']);
 Route::get('/admin/questions', [AdminAnalyticsController::class, 'questions']);
+Route::get('/admin/users', [AdminAnalyticsController::class, 'users']);
+Route::get('/admin/comparisons', [AdminAnalyticsController::class, 'comparisons']);
