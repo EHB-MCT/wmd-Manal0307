@@ -15,12 +15,23 @@ class UserSession extends Model
         'started_at',
         'ended_at',
         'duration',
+        'completed',
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
+        'completed' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (UserSession $session) {
+            if ($session->duration && $session->duration < 0) {
+                $session->duration = abs($session->duration);
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {

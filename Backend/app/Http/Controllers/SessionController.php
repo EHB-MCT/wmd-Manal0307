@@ -19,6 +19,7 @@ class SessionController extends Controller
         $session = UserSession::create([
             'user_id' => $user->id,
             'started_at' => now(),
+            'completed' => false,
         ]);
 
         $user->sessions_count += 1;
@@ -40,6 +41,7 @@ class SessionController extends Controller
 
         $session->ended_at = $endedAt;
         $session->duration = $endedAt->diffInSeconds($session->started_at);
+        $session->completed = $request->boolean('completed');
         $session->save();
 
         if ($session->user) {
