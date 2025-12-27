@@ -5,11 +5,17 @@ namespace Database\Seeders;
 use App\Models\Question;
 use App\Models\QuestionAnswer;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class QuestionSeeder extends Seeder
 {
     public function run(): void
     {
+        QuestionAnswer::query()->delete();
+        Question::query()->delete();
+        DB::statement('ALTER TABLE question_answers AUTO_INCREMENT = 1');
+        DB::statement('ALTER TABLE questions AUTO_INCREMENT = 1');
+
         $questions = [
             [
                 'order' => 1,
