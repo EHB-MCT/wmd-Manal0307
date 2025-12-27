@@ -10,11 +10,21 @@ class RecommendationController extends Controller
     public function get(string $uid)
     {
         $user = User::where('uid', $uid)->firstOrFail();
+        $user->last_activity_at = now();
+        $user->save();
 
-        if (!$user->last_mood) {
-            return response()->json([]);
+        $query = Perfume::query();
+
+        if ($user->last_mood) {
+            $query->where('mood', $user->last_mood);
         }
 
-        return Perfume::where('mood', $user->last_mood)->get();
+        $recommendations = $query->inRandomOrder()->limit(4)->get();
+
+        if ($recommendations->isEmpty()) {
+            $recommendations = Perfume::inRandomOrder()->limit(4)->get();
+        }
+
+        return $recommendations->values();
     }
 }
