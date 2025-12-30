@@ -15,6 +15,12 @@ class Interaction extends Model
         'event_type',
         'metadata',
         'timestamp',
+        'page_url',
+        'user_agent',
+        'viewport_width',
+        'viewport_height',
+        'screen_width',
+        'screen_height',
     ];
 
     protected $casts = [
