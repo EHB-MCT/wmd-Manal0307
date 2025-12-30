@@ -6,10 +6,12 @@ import Questionnaire from './pages/Questionnaire/Questionnaire';
 import Explorer from './pages/Explorer/Explorer';
 import Results from './pages/Results/Results';
 import Dashboard from './pages/AdminDashboard/Dashboard';
+import InteractionTracker from './components/Tracking/InteractionTracker';
 
 function App() {
   return (
     <BrowserRouter>
+      <InteractionTracker />
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
