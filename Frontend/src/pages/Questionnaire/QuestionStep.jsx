@@ -14,6 +14,9 @@ export default function QuestionStep({
 }) {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [startTime, setStartTime] = useState(Date.now());
+  const popularAnswerId = question.popular_answer_id;
+  const popularLabel = question.popular_answer_label;
+  const popularShare = question.popular_answer_share;
   const answersToRender = useMemo(() => {
     const list = question.answers || [];
     if (question.question_key === 'budget') {
@@ -60,20 +63,35 @@ export default function QuestionStep({
         subtitle={question.subtitle}
         progress={`${step} / ${total}`}
       >
+        {popularAnswerId && popularLabel && popularShare > 0 && (
+          <div className="question-step__insight">
+            <span className="insight-label">Collectieve voorkeur</span>
+            <p>
+              <strong>{popularLabel}</strong> wordt momenteel gekozen door{' '}
+              <strong>{popularShare}%</strong> van alle deelnemers.
+            </p>
+          </div>
+        )}
+
         <div className="question-step__answers">
           {answersToRender.map((answer) => (
             <button
               type="button"
               key={answer.id}
-              className={`answer-button ${
-                selectedAnswer?.id === answer.id ? 'is-selected' : ''
+              className={`answer-button ${selectedAnswer?.id === answer.id ? 'is-selected' : ''} ${
+                popularAnswerId && popularAnswerId === answer.id ? 'is-popular' : ''
               }`}
               onClick={() => setSelectedAnswer(answer)}
               data-track-id={`answer-${question.id}-${answer.id}`}
               data-track-label={answer.label}
               data-track-hover
             >
-              {answer.label}
+              <span className="answer-button__label">
+                <span>{answer.label}</span>
+                {popularAnswerId && popularAnswerId === answer.id && (
+                  <span className="answer-popular">Meest gekozen</span>
+                )}
+              </span>
             </button>
           ))}
         </div>
