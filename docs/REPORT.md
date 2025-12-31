@@ -44,7 +44,17 @@ Elke interactie bevat o.a. `uid`, event_type, CTA/component metadata, route, vie
 - **Geen mockdata**: seeders bevatten enkel vaste vragen/parfums. Analytics ontstaan door echte sessies of optionele demoseed.
 
 ## 6. Bronnen & tools
-- Frameworks: Laravel 12, React 18/Vite, MySQL 8, Axios.
-- UI-inspiratie en fotografie: Chanel, Dior, Byredo (voor beeldmateriaal en copy).
-- AI-assistentie: ChatGPT (OpenAI) voor ideevorming, tekstuele feedback en codevoorstellen; alle output werd herzien en geïntegreerd met eigen logica.
-- Verder gebruikt: officiële documentatie van Laravel/React/Vite, OWASP-cheatsheets voor input sanitizing.
+- **Frameworks**  
+  - Laravel 12 documentatie – <https://laravel.com/docs>  
+  - React & React Router – <https://react.dev/> en <https://reactrouter.com/>  
+  - Vite build tool – <https://vitejs.dev/>  
+  - Axios HTTP client – <https://axios-http.com/>
+- **Tracking & security referenties**  
+  - OWASP Input Validation Cheat Sheet – <https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html>  
+  - Google Analytics event best practices (voor CTA-naming) – <https://developers.google.com/analytics/devguides/collection/ga4/events>  
+  - Mixpanel artikel over misclick tracking – <https://mixpanel.com/blog/track-user-engagement-misclicks/>
+- **UI-inspiratie & content**  
+  - Chanel parfums – <https://www.chanel.com/>  
+  - Dior Beauty – <https://www.dior.com/en_int/beauty>  
+- **AI-assistentie**  
+  - ChatGPT (OpenAI): bugfixes & vragen : <https://chatgpt.com/share/695516bd-1b90-8008-ac0d-a7c565ad7fbb>
