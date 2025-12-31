@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600&display=swap');
+
+:root {
+  font-family: 'Playfair Display', 'Inter', 'Helvetica', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #111;
+  background-color: #fff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #111;
+}
+
+main {
+  min-height: calc(100vh - 80px);
+}
+
+a {
+  color: inherit;
+}
