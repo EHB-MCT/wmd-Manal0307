@@ -57,6 +57,7 @@ class AdminAnalyticsController extends Controller
             'mood_distribution' => $this->moodDistribution(),
             'page_stats' => $this->pageStats(),
             'event_breakdown' => $this->eventBreakdown(),
+            'cta_breakdown' => $this->ctaBreakdown(),
         ];
     }
 
@@ -95,6 +96,8 @@ class AdminAnalyticsController extends Controller
         $from = $this->parseDate($request->input('from'));
         $to = $this->parseDate($request->input('to'));
         $device = $request->input('device');
+        $eventType = $request->input('event_type');
+        $cta = $request->input('cta');
 
         $sessions = $user->sessions()
             ->when($from, fn ($query) => $query->where('started_at', '>=', $from))
@@ -112,6 +115,10 @@ class AdminAnalyticsController extends Controller
             ->when($from, fn ($query) => $query->where('timestamp', '>=', $from))
             ->when($to, fn ($query) => $query->where('timestamp', '<=', $to))
             ->when($device, fn ($query) => $query->where('user_agent', 'LIKE', "%{$device}%"))
+            ->when($eventType, fn ($query) => $query->where('event_type', $eventType))
+            ->when($cta, function ($query) use ($cta) {
+                $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.cta')) = ?", [$cta]);
+            })
             ->orderByDesc('timestamp')
             ->limit(200)
             ->get();
@@ -123,6 +130,7 @@ class AdminAnalyticsController extends Controller
             ->get();
 
         $profile = $this->profileService->getProfile($user);
+        $actions = $user->adminActions()->latest()->limit(20)->get();
 
         return [
             'user' => $user,
@@ -131,6 +139,7 @@ class AdminAnalyticsController extends Controller
             'answers' => $answers,
             'interactions' => $interactions,
             'comparisons' => $comparisons,
+            'actions' => $actions,
         ];
     }
 
@@ -210,6 +219,24 @@ class AdminAnalyticsController extends Controller
             ->map(function ($row) {
                 return [
                     'event_type' => $row->event_type,
+                    'total' => (int) $row->total,
+                ];
+            })
+            ->toArray();
+    }
+
+    private function ctaBreakdown(): array
+    {
+        return Interaction::selectRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.cta')) as cta")
+            ->whereRaw("JSON_EXTRACT(metadata, '$.cta') IS NOT NULL")
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('cta')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'cta' => $row->cta ?? 'onbekend',
                     'total' => (int) $row->total,
                 ];
             })

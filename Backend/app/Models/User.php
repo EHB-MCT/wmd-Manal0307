@@ -44,6 +44,11 @@ class User extends Model
         return $this->hasMany(Comparison::class);
     }
 
+    public function adminActions(): HasMany
+    {
+        return $this->hasMany(AdminUserAction::class);
+    }
+
     public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);

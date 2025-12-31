@@ -15,7 +15,12 @@ class ProfileController extends Controller
     public function show(string $uid)
     {
         $user = User::where('uid', $uid)->firstOrFail();
+        $profile = $this->service->getProfile($user);
+        $latestAction = $user->adminActions()->latest()->first();
 
-        return response()->json($this->service->getProfile($user));
+        return response()->json([
+            'profile' => $profile,
+            'latest_action' => $latestAction,
+        ]);
     }
 }
