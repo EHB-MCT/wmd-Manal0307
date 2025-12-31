@@ -1,8 +1,12 @@
 # 🧴 Parfum Advisor
 
-Weapon of Math Destruction-project dat elke interactie logt, gebruikers segmenteert en het admin-dashboard realtime voedt – zonder mockdata. Alle analyses over bias, bronnen en AI-hulp vind je in [`docs/REPORT.md`](docs/REPORT.md).
+Weapon of Math Destruction-project dat elke interactie logt, gebruikers segmenteert en het admin-dashboard realtime voedt. Alle analyses over bias, bronnen en AI-hulp vind je in [`docs/REPORT.md`](docs/REPORT.md).
 
 ---
+
+## 1. Doel
+Parfum Advisor verzamelt zoveel mogelijk gebruikersinteracties om een gedragsprofiel te bouwen. Dat profiel beïnvloedt het quizverloop, de getoonde aanbevelingen en admin-beslissingen. Dit document beschrijft de datastroom, de voornaamste biases en de gebruikte bronnen.
+
 
 ## 0. Opstarten
 
@@ -107,7 +111,6 @@ docker compose down -v    # inclusief volumes
 - Scheduler manueel triggeren: `docker compose exec backend php artisan schedule:run`.
 - Rapport + bronnen + AI-conversaties: zie [`docs/REPORT.md`](docs/REPORT.md). Inspiratie voor beeldmateriaal: Chanel, Dior, Byredo (vermeld in het rapport).
 
-Succes! Verzamel zoveel mogelijk data, analyseer ethische risico’s en noteer de beperkingen in het verslag.***
 - **Demo data genereren** (optioneel):
   ```bash
   docker compose exec backend php artisan demo:seed --count=5
