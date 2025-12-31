@@ -5,7 +5,7 @@ import { ensureDeviceContext, trackClientEvent } from '../utils/tracking';
 const HOVER_COOLDOWN = 5000;
 const IDLE_TIMEOUT = 30000;
 
-function extractTargetMetadata(target) {
+export function extractTargetMetadata(target) {
   if (!target) {
     return null;
   }
@@ -21,6 +21,9 @@ function extractTargetMetadata(target) {
     tag: target.tagName,
     role: target.getAttribute('role'),
     route: dataset.trackRoute || null,
+    component: dataset.trackComponent || null,
+    cta: dataset.trackCta || null,
+    section: dataset.trackSection || null,
   };
 }
 
@@ -51,8 +54,19 @@ export default function useInteractionTracker() {
 
     const handleClick = (event) => {
       const trackedTarget = event.target.closest('[data-track-id]');
-      const metadata = extractTargetMetadata(trackedTarget || event.target);
-      const eventType = trackedTarget?.dataset?.trackEvent || 'click';
+
+      if (!trackedTarget) {
+        trackClientEvent('misclick', {
+          tag: event.target.tagName,
+          x: event.clientX,
+          y: event.clientY,
+        });
+        resetIdleTimer();
+        return;
+      }
+
+      const metadata = extractTargetMetadata(trackedTarget);
+      const eventType = trackedTarget.dataset?.trackEvent || 'click';
 
       trackClientEvent(eventType, {
         ...metadata,

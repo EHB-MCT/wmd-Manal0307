@@ -23,3 +23,7 @@ export function getUserDetail(uid, params = {}) {
 export function getComparisons() {
   return axiosClient.get('/admin/comparisons');
 }
+
+export function createUserAction(uid, payload) {
+  return axiosClient.post(`/admin/users/${uid}/actions`, payload);
+}

@@ -85,6 +85,9 @@ export default function QuestionStep({
               data-track-id={`answer-${question.id}-${answer.id}`}
               data-track-label={answer.label}
               data-track-hover
+              data-track-component="quiz-answer"
+              data-track-section={question.question_key || `question-${question.id}`}
+              data-track-cta={answer.label}
             >
               <span className="answer-button__label">
                 <span>{answer.label}</span>
@@ -102,6 +105,8 @@ export default function QuestionStep({
             disabled={isFirst}
             onClick={onPrev}
             data-track-id="quiz-prev"
+            data-track-component="quiz-navigation"
+            data-track-cta="prev"
           >
             ← Vorige
           </button>
@@ -112,6 +117,8 @@ export default function QuestionStep({
             onClick={handleSubmit}
             data-track-id={isLast ? 'quiz-finish' : 'quiz-next'}
             data-track-event={isLast ? 'cta_click' : undefined}
+            data-track-component="quiz-navigation"
+            data-track-cta={isLast ? 'finish' : 'next'}
           >
             {isLast ? 'Beëindigen →' : 'Volgende →'}
           </button>

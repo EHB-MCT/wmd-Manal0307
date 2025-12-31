@@ -14,6 +14,46 @@
   background: #fdf8f0;
 }
 
+.questionnaire-nudge {
+  max-width: 780px;
+  margin: 20px auto;
+  border-radius: 12px;
+  padding: 16px 22px;
+  background: #fff1e4;
+  color: #7b5a3c;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.questionnaire-nudge--luxury_high_spender {
+  background: #fdf4e1;
+  color: #7c5c2b;
+}
+
+.questionnaire-nudge--premium_target {
+  background: #eef7ff;
+  color: #2f4d6c;
+}
+
+.questionnaire-nudge--low_attention {
+  background: #fff0f0;
+  color: #8a3030;
+}
+
+.questionnaire-nudge--alert {
+  border: 1px solid #f5c2c2;
+  background: #fff5f5;
+  color: #9e2a2a;
+}
+
+.questionnaire-nudge__action {
+  font-size: 0.85rem;
+  color: inherit;
+  font-weight: 600;
+}
+
 .question-step__back {
   margin-bottom: 16px;
   width: 100%;

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import './Dashboard.css';
-import { getUserDetail, getUsers } from '../../api/adminApi';
+import { createUserAction, getUserDetail, getUsers } from '../../api/adminApi';
 
 const DEFAULT_FILTERS = {
   from: '',
   to: '',
   device: '',
+  event_type: '',
+  cta: '',
 };
 
 export default function UsersAnalytics() {
@@ -24,6 +26,7 @@ export default function UsersAnalytics() {
   const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
 
   const [actionMessage, setActionMessage] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -141,13 +144,62 @@ export default function UsersAnalytics() {
     setAppliedFilters(DEFAULT_FILTERS);
   };
 
-  const handleAction = (type) => {
-    const message =
+  const handleExport = () => {
+    if (!detail?.interactions?.length) {
+      window.alert('Geen interacties om te exporteren.');
+      return;
+    }
+
+    const header = ['timestamp', 'event_type', 'cta', 'component', 'route'];
+    const rows = detail.interactions.map((interaction) => {
+      const metadata = interaction.metadata || {};
+      return [
+        formatDate(interaction.timestamp),
+        interaction.event_type,
+        metadata.cta || '',
+        metadata.component || '',
+        metadata.route || '',
+      ];
+    });
+
+    const csv = [header.join(','), ...rows.map((row) => row.map((value) => `"${value}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `interacties-${selectedUid || 'export'}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleAction = async (type) => {
+    if (!selectedUid) return;
+
+    const note = window.prompt(
       type === 'risk'
-        ? 'Gebruiker gemarkeerd als risicovol segment.'
-        : 'Persoonlijke promotie verstuurd.';
-    setActionMessage(message);
-    setTimeout(() => setActionMessage(''), 3500);
+        ? 'Waarom markeer je deze gebruiker als riskant? (optioneel)'
+        : 'Welke promotie bied je aan? (optioneel)',
+      '',
+    );
+
+    try {
+      setActionLoading(true);
+      await createUserAction(selectedUid, {
+        action_type: type === 'risk' ? 'flag' : 'promote',
+        note: note || undefined,
+      });
+      setActionMessage(
+        type === 'risk'
+          ? 'Gebruiker gemarkeerd als risicovol.'
+          : 'Promotie-opvolging geregistreerd.',
+      );
+      await loadDetail();
+    } catch (error) {
+      setActionMessage('Actie kon niet opgeslagen worden.');
+    } finally {
+      setActionLoading(false);
+      setTimeout(() => setActionMessage(''), 3500);
+    }
   };
 
   const profileTraits = useMemo(() => {
@@ -161,6 +213,7 @@ export default function UsersAnalytics() {
   const interactions = detail?.interactions ?? [];
   const answers = detail?.answers ?? [];
   const comparisons = detail?.comparisons ?? [];
+  const userActions = detail?.actions ?? [];
 
   return (
     <section className="panel users-panel">
@@ -219,10 +272,18 @@ export default function UsersAnalytics() {
             {selectedUid && <p className="detail-subtitle">UID: {selectedUid}</p>}
           </div>
           <div className="detail-actions">
-            <button type="button" onClick={() => handleAction('risk')} disabled={!selectedUid}>
+            <button
+              type="button"
+              onClick={() => handleAction('risk')}
+              disabled={!selectedUid || actionLoading}
+            >
               Markeer riskant
             </button>
-            <button type="button" onClick={() => handleAction('promote')} disabled={!selectedUid}>
+            <button
+              type="button"
+              onClick={() => handleAction('promote')}
+              disabled={!selectedUid || actionLoading}
+            >
               Stuur promotie
             </button>
           </div>
@@ -249,12 +310,35 @@ export default function UsersAnalytics() {
               onChange={handleFilterChange}
             />
           </label>
+          <label>
+            Event type
+            <input
+              type="text"
+              name="event_type"
+              placeholder="click, hover…"
+              value={filterDraft.event_type}
+              onChange={handleFilterChange}
+            />
+          </label>
+          <label>
+            CTA
+            <input
+              type="text"
+              name="cta"
+              placeholder="home-start, quiz-next…"
+              value={filterDraft.cta}
+              onChange={handleFilterChange}
+            />
+          </label>
           <div className="filter-actions">
             <button type="submit" disabled={!selectedUid}>
               Filters toepassen
             </button>
             <button type="button" onClick={handleResetFilters}>
               Reset
+            </button>
+            <button type="button" onClick={handleExport} disabled={!detail?.interactions?.length}>
+              Exporteer CSV
             </button>
           </div>
         </form>
@@ -365,6 +449,20 @@ export default function UsersAnalytics() {
                 {!comparisons.length && (
                   <li className="muted">Nog geen vergelijkingen voor deze gebruiker.</li>
                 )}
+              </ul>
+            </section>
+
+            <section className="detail-card">
+              <h3>Admin acties</h3>
+              <ul className="detail-list">
+                {userActions.slice(0, 5).map((action) => (
+                  <li key={action.id}>
+                    <strong>{formatDate(action.created_at)}</strong>
+                    <span className="muted">{action.action_type}</span>
+                    {action.context?.note && <span>{action.context.note}</span>}
+                  </li>
+                ))}
+                {!userActions.length && <li className="muted">Nog geen acties geregistreerd.</li>}
               </ul>
             </section>
           </div>

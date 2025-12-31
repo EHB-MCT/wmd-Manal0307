@@ -177,6 +177,29 @@ export default function Dashboard() {
                       <p>Nog geen events geregistreerd.</p>
                     )}
                   </div>
+                  <div className="panel">
+                    <h3>CTA clicks</h3>
+                    {overview.cta_breakdown?.length ? (
+                      <table className="analytics-table">
+                        <thead>
+                          <tr>
+                            <th>CTA</th>
+                            <th>Totaal</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {overview.cta_breakdown.map((cta) => (
+                            <tr key={cta.cta || 'unknown'}>
+                              <td>{cta.cta || 'Onbekend'}</td>
+                              <td>{cta.total}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p>Nog geen CTA-data.</p>
+                    )}
+                  </div>
                 </div>
 
                 <PageAnalytics stats={overview.page_stats} />

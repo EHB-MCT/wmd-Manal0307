@@ -104,6 +104,8 @@ export default function Explorer() {
             onClick={handleSaveComparison}
             data-track-id="explorer-save-comparison"
             data-track-event="cta_click"
+            data-track-component="comparison"
+            data-track-cta="save"
           >
             {saving ? 'Opslaan...' : 'Bewaar vergelijking'}
           </button>
@@ -119,6 +121,7 @@ export default function Explorer() {
             data-track-id={`explorer-card-${perfume.id}`}
             data-track-hover
             data-track-event="cta_hover"
+            data-track-component="explorer-card"
           >
             {perfume.image_url && (
               <div className="explorer-card__image">
@@ -134,6 +137,8 @@ export default function Explorer() {
               className="select-button"
               onClick={() => toggleSelect(perfume)}
               data-track-id={`select-perfume-${perfume.id}`}
+              data-track-component="comparison"
+              data-track-cta="select"
             >
               {selected.find((item) => item.id === perfume.id) ? 'Verwijder' : 'Selecteer'}
             </button>

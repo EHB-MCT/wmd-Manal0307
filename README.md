@@ -1,10 +1,10 @@
 # 🧴 Parfum Advisor
 
-Weapon of Math Destruction project dat iedere interactie bijhoudt, gebruikers segmenteert en het admin dashboard realtime voedt – zonder mockdata.
+Weapon of Math Destruction-project dat elke interactie logt, gebruikers segmenteert en het admin-dashboard realtime voedt – zonder mockdata. Alle analyses over bias, bronnen en AI-hulp vind je in [`docs/REPORT.md`](docs/REPORT.md).
 
 ---
 
-## 0. Start & lokale setup
+## 0. Opstarten
 
 1. **Environment klaarzetten**
    ```bash
@@ -17,15 +17,15 @@ Weapon of Math Destruction project dat iedere interactie bijhoudt, gebruikers se
    docker compose up --build
    docker compose exec backend php artisan migrate
    ```
-3. **Urls**
+3. **URLs**
    - Quiz + tracking frontend: `http://localhost:5174`
    - Admin dashboard: `http://localhost:5174/dashboard`
    - Backend API: `http://localhost:8080`
    - phpMyAdmin: `http://localhost:8081`
 
-> Vite vraagt Node.js ≥ 20.19. Versies daaronder geven enkel een waarschuwing.
+> Vite verwacht Node.js ≥ 20.19. Lagere versies geven enkel een waarschuwing.
 
-Alle statistieken, grafieken en tabellen halen hun data rechtstreeks uit MySQL. Seeders leveren enkel vaste entities (vragen, parfums). Sessions, answers, interactions, profiles, comparisons … worden enkel aangemaakt door echte gebruikersacties.
+Alle grafieken en tabellen zijn gebaseerd op MySQL-data. Seeders voorzien enkel vaste entiteiten (vragen, parfums). Sessions, answers, interactions, profiles en comparisons ontstaan uitsluitend door echte gebruikersacties (of via de optionele demo-command hieronder).
 
 ---
 
@@ -38,7 +38,7 @@ wmd-Manal0307/
 │   ├── app/
 │   │   ├── Console/Commands        # bv. sessions:close-stale
 │   │   ├── Http/Controllers        # API endpoints
-│   │   ├── Http/Middleware         # Sanitizing & tracking filters
+│   │   ├── Http/Middleware         # opschoning & tracking
 │   │   └── Models/Services         # User, Session, Profile, …
 │   ├── database/
 │   │   ├── migrations              # tabellen voor analytics
@@ -46,8 +46,8 @@ wmd-Manal0307/
 │   └── routes/api.php              # REST API
 └── Frontend/ (React + Vite)
     ├── src/api                     # axios clients
-    ├── src/components              # charts, cards, tracker
-    ├── src/hooks                   # tracking & profile hooks
+    ├── src/components              # charts, kaarten, tracker
+    ├── src/hooks                   # tracking & profiel
     └── src/pages                   # quiz, explorer, dashboard
 ```
 
@@ -57,22 +57,21 @@ wmd-Manal0307/
 
 | Flow | Beschrijving |
 | --- | --- |
-| **Tracking layer** | `useInteractionTracker` logt clicks, hovers, focus/blurs, scroll depth, exit intent, idle events, drag/drop, copy enz. Data wordt opgeschoond (max lengtes, strip tags) en opgeslagen in `interactions`. |
-| **Profiel & nudging** | Antwoorden + gedrag voeden `user_profiles` via `UserProfileService`. React toont banners, hersorteert keuzes en highlight CTAs op basis van segment. |
-| **Admin dashboard** | `/admin/overview` + `/admin/users/{uid}` leveren de cijfers. Users tab bevat search, filters (datum/device), detailpanelen met sessies, interacties, antwoorden en vergelijkingen. Alles toont live data. |
-| **Vergelijkingen** | Gebruikers selecteren parfums, duiden een winnaar aan en sturen het naar `/comparisons`. Deze events verschijnen in het dashboard en kunnen beheerd worden. |
+| **Tracking layer** | `useInteractionTracker` logt clicks, hovers, focus/blurs, scroll depth, exit intent, idle events, drag/drop, copy, misclicks… alles wordt opgeschoond in `SanitizeInput` en opgeslagen in `interactions`. |
+| **Profiel & nudging** | `UserProfileService` combineert antwoorden + gedrag. React toont banners, past volgorde van antwoorden/CTA’s aan, toont badges “Meest gekozen” en waarschuwingen wanneer een admin ingrijpt. |
+| **Admin dashboard** | `/admin/overview` + `/admin/users/{uid}` geven statistieken, filters (daterange/device), detailtabellen (sessies, interacties, antwoorden, vergelijkingen) en een historiek van admin-acties. |
+| **Vergelijkingen** | Explorer laat gebruikers parfums selecteren en een winnaar aanduiden. Deze data voedt het dashboard en kan door een admin beslist/gemanaged worden. |
 
 ---
 
-## 3. Sanitizing & datakwaliteit
+## 3. Opschoning & datakwaliteit
 
-- Middleware `SanitizeInput` trimt en normaliseert alle niet-GET payloads.
-- `InteractionController` beperkt metadata tot veilige, korte key/value-paren.
-- Artisan command `sessions:close-stale` sluit sessies die langer dan X minuten open staan.
+- Middleware `SanitizeInput` trimt en normaliseert elke niet-GET payload.
+- `InteractionController` bewaart enkel veilige metadata (max 25 keys, beperkte lengte).
+- Artisan `sessions:close-stale` sluit sessies die langer dan X minuten openstaan en draait elk uur via de scheduler.
   ```bash
   docker compose exec backend php artisan sessions:close-stale --timeout=60
   ```
-- Scheduler (`routes/console.php`) draait het commando elk uur automatisch.
 
 ---
 
@@ -81,8 +80,8 @@ wmd-Manal0307/
 | Service | Beschrijving |
 | --- | --- |
 | `db` | MySQL 8 met volume `db_data` |
-| `phpmyadmin` | UI op poort 8081 |
-| `backend` | PHP 8.3 + Apache, laadt `.env` waarden van hierboven |
+| `phpmyadmin` | Webinterface op poort 8081 |
+| `backend` | PHP 8.3 + Apache, gebruikt `.env` waarden |
 | `frontend` | Node 22 Alpine, draait `npm run dev` |
 
 Stoppen en opruimen:
@@ -93,19 +92,23 @@ docker compose down -v    # inclusief volumes
 
 ---
 
-## 5. Testing & kwaliteitsbewaking
+## 5. Tests & kwaliteit
 
 - **PHPUnit**: `docker compose exec backend php artisan test`
 - **Vitest (optioneel)**: `cd Frontend && npm test`
-- Feature test `CloseStaleSessionsTest` zorgt dat het artisan commando correcte sessies afsluit.
-- Gebruik feature branches (`feature/...`) + conventionele commits (`feat:`, `fix:`, `chore:`).
+- Featuretest `CloseStaleSessionsTest` controleert het artisan-commando; bijkomende tests volgen voor AdminAnalytics en tracker.
+- Werk via feature branches (`feature/...`) met conventionele commitberichten (`feat:`, `fix:`, `chore:`).
 
 ---
 
-## 6. Extra hulpmiddelen
+## 6. Extra hulp
 
-- `Backend/.env.example` bevat exacte docker credentials.
-- `docker compose exec backend php artisan schedule:run` kan gebruikt worden om de scheduler manueel te triggeren.
-- Bronvermeldingen & AI-conversaties documenteren in je eindrapport (WMD-vereiste).
+- `Backend/.env.example` bevat de exacte docker-credentials.
+- Scheduler manueel triggeren: `docker compose exec backend php artisan schedule:run`.
+- Rapport + bronnen + AI-conversaties: zie [`docs/REPORT.md`](docs/REPORT.md). Inspiratie voor beeldmateriaal: Chanel, Dior, Byredo (vermeld in het rapport).
 
-Succes! Verzamel zoveel mogelijk data, analyseer het ethisch en beschrijf de beperkingen in het finale verslag.***
+Succes! Verzamel zoveel mogelijk data, analyseer ethische risico’s en noteer de beperkingen in het verslag.***
+- **Demo data genereren** (optioneel):
+  ```bash
+  docker compose exec backend php artisan demo:seed --count=5
+  ```

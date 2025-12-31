@@ -9,6 +9,35 @@
   margin-bottom: 40px;
 }
 
+.results-nudge {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-radius: 12px;
+  padding: 18px 24px;
+  margin-bottom: 28px;
+  background: #f4f4f4;
+}
+
+.results-nudge--luxury_high_spender {
+  background: #fdf4e1;
+}
+
+.results-nudge--premium_target {
+  background: #e8f1ff;
+}
+
+.results-nudge--low_attention {
+  background: #fff1f1;
+}
+
+.results-nudge__action {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .results .subtitle {
   text-transform: uppercase;
   letter-spacing: 2px;

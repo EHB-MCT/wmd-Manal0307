@@ -27,13 +27,14 @@ const FALLBACK_QUESTIONS = [
     id: 2,
     order: 2,
     question_text: 'Wat is uw levensstijl?',
-    subtitle: 'Laat uw dagelijkse energie spreken',
+    subtitle: 'Uw dagelijkse ritme stuurt uw geurkeuze',
     question_key: 'lifestyle',
     answers: [
-      { id: 21, label: 'Minimalistisch' },
-      { id: 22, label: 'Creatief' },
-      { id: 23, label: 'Avontuurlijk' },
-      { id: 24, label: 'Luxueus' },
+      { id: 21, label: 'Actief & sportief' },
+      { id: 22, label: 'Raffiné & elegant' },
+      { id: 23, label: 'Avondmens & sociaal' },
+      { id: 24, label: 'Zakelijk & rustig' },
+      { id: 25, label: 'Relax & casual' },
     ],
   },
   {
@@ -43,35 +44,35 @@ const FALLBACK_QUESTIONS = [
     subtitle: 'Uw instinct leidt de keuze',
     question_key: 'scent_family',
     answers: [
-      { id: 31, label: 'Bloemig' },
-      { id: 32, label: 'Houtachtig' },
-      { id: 33, label: 'Oriëntaals' },
-      { id: 34, label: 'Citrus & fris' },
+      { id: 31, label: 'Fris — Citrus, aquatisch' },
+      { id: 32, label: 'Floraal — Roos, jasmijn' },
+      { id: 33, label: 'Houtachtig — Sandelhout, ceder' },
+      { id: 34, label: 'Oriëntaals — Amber, vanille' },
+      { id: 35, label: 'Kruidig — Kaneel, peper' },
     ],
   },
   {
     id: 4,
     order: 4,
     question_text: 'Welke intensiteit verkiest u?',
-    subtitle: 'Van subtiel tot hypnotiserend',
+    subtitle: 'Van subtiel tot uitgesproken',
     question_key: 'intensity',
     answers: [
-      { id: 41, label: 'Discreet' },
-      { id: 42, label: 'Aanwezig' },
-      { id: 43, label: 'Betoverend' },
+      { id: 41, label: 'Discreet — dicht op de huid' },
+      { id: 42, label: 'Aanwezig — mooi in balans' },
+      { id: 43, label: 'Statement — niet te negeren' },
     ],
   },
   {
     id: 5,
     order: 5,
     question_text: 'Welk budget voorziet u?',
-    subtitle: 'Uw investering in een signatuur',
+    subtitle: 'Wij stemmen onze suggesties af op uw investering',
     question_key: 'budget',
     answers: [
-      { id: 51, label: 'Tot €50' },
-      { id: 52, label: '€50 - €100' },
-      { id: 53, label: '€100 - €200' },
-      { id: 54, label: 'Meer dan €200' },
+      { id: 51, label: 'Tot €150' },
+      { id: 52, label: '€150 - €250' },
+      { id: 53, label: 'Meer dan €250' },
     ],
   },
 ];
@@ -84,7 +85,7 @@ export default function Questionnaire() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   usePageTracking('questionnaire');
-  const { profile, refreshProfile } = useUserProfile();
+  const { profile, latestAction, refreshProfile } = useUserProfile();
 
   const currentQuestion = useMemo(() => questions[step], [questions, step]);
 
@@ -148,13 +149,28 @@ export default function Questionnaire() {
 
   return (
     <>
-      {profile && (
-        <div className={`questionnaire-nudge questionnaire-nudge--${profile.segment || 'default'}`}>
-          {profile.segment === 'luxury_high_spender' && 'Wij selecteren alvast de meest exclusieve geuren voor u.'}
-          {profile.segment === 'premium_target' && 'Nog één vraag verwijderd van uw premium selectie.'}
-          {profile.segment === 'low_attention' &&
+      {(profile || latestAction) && (
+        <div
+          className={`questionnaire-nudge questionnaire-nudge--${profile?.segment || 'default'} ${
+            latestAction?.action_type === 'flag' ? 'questionnaire-nudge--alert' : ''
+          }`}
+        >
+          {profile?.segment === 'luxury_high_spender' &&
+            'Wij selecteren alvast de meest exclusieve geuren voor u.'}
+          {profile?.segment === 'premium_target' && 'Nog één vraag verwijderd van uw premium selectie.'}
+          {profile?.segment === 'low_attention' &&
             'Blijf erbij – hoe sneller u kiest, hoe beter we u kunnen matchen.'}
-          {!profile.segment && 'Uw antwoorden verfijnen elk advies; neem uw tijd.'}
+          {!profile && !latestAction && 'Uw antwoorden verfijnen elk advies; neem uw tijd.'}
+          {latestAction?.action_type === 'flag' && (
+            <span className="questionnaire-nudge__action">
+              Admin-opvolging: voltooi elke vraag om uw profiel actief te houden.
+            </span>
+          )}
+          {latestAction?.action_type === 'promote' && (
+            <span className="questionnaire-nudge__action">
+              U kreeg zonet een exclusieve aanbieding — werk de vragenlijst af voor directe toegang.
+            </span>
+          )}
         </div>
       )}
       <QuestionStep

@@ -4,6 +4,7 @@ import { ensureUser } from '../utils/user';
 
 export default function useUserProfile() {
   const [profile, setProfile] = useState(null);
+  const [latestAction, setLatestAction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -13,7 +14,13 @@ export default function useUserProfile() {
       const currentUser = await ensureUser();
       if (!currentUser?.uid) return;
       const data = await getProfile(currentUser.uid);
-      setProfile(data);
+      if (data?.profile) {
+        setProfile(data.profile);
+        setLatestAction(data.latest_action || null);
+      } else {
+        setProfile(data);
+        setLatestAction(null);
+      }
       setError(null);
     } catch (err) {
       setError(err);
@@ -26,5 +33,5 @@ export default function useUserProfile() {
     refreshProfile();
   }, [refreshProfile]);
 
-  return { profile, loading, error, refreshProfile };
+  return { profile, latestAction, loading, error, refreshProfile };
 }
