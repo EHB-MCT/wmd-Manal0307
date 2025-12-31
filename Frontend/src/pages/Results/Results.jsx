@@ -3,12 +3,14 @@ import './Results.css';
 import { getRecommendations, saveComparison } from '../../api/questionnaireApi';
 import usePageTracking from '../../hooks/usePageTracking';
 import { ensureUser } from '../../utils/user';
+import useUserProfile from '../../hooks/useUserProfile';
 
 export default function Results() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const comparisonLogged = useRef(false);
   usePageTracking('results');
+  const { profile, refreshProfile } = useUserProfile();
 
   useEffect(() => {
     async function load() {
@@ -17,6 +19,7 @@ export default function Results() {
         if (!currentUser?.uid) return;
         const data = await getRecommendations(currentUser.uid);
         setRecommendations(data);
+        await refreshProfile();
 
          if (!comparisonLogged.current && Array.isArray(data) && data.length >= 2) {
            comparisonLogged.current = true;
@@ -51,6 +54,22 @@ export default function Results() {
           aansluiten.
         </p>
       </header>
+
+      {profile && (
+        <div className={`results-nudge results-nudge--${profile.segment || 'default'}`}>
+          <div>
+            <strong>Profielstatus</strong>
+            <p>Segment: {profile.segment || 'onbekend'}</p>
+            <p>Score: {profile.score?.toFixed?.(1) ?? profile.score ?? 0}/100</p>
+          </div>
+          <div>
+            {profile.segment === 'luxury_high_spender' && 'Exclusieve parfums komen bovenaan uw lijst.'}
+            {profile.segment === 'premium_target' && 'We benadrukken premium keuzes voor uw tempo.'}
+            {profile.segment === 'low_attention' && 'We tonen de eenvoudigste opties eerst voor snelle beslissers.'}
+            {!profile.segment && 'Voltooi de vragenlijst voor nog betere aanbevelingen.'}
+          </div>
+        </div>
+      )}
 
       {loading && <p>Laden...</p>}
 

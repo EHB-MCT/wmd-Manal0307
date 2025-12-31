@@ -7,6 +7,9 @@ use App\Models\Interaction;
 use App\Models\User;
 use App\Models\UserAnswer;
 use App\Models\UserSession;
+use App\Services\UserProfileService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AdminAnalyticsController extends Controller
@@ -23,6 +26,10 @@ class AdminAnalyticsController extends Controller
         'zelfzeker & krachtig' => '#b0b0b0',
         'mysterieus & diep' => '#6f6f6f',
     ];
+
+    public function __construct(private UserProfileService $profileService)
+    {
+    }
 
     public function overview()
     {
@@ -49,6 +56,7 @@ class AdminAnalyticsController extends Controller
             'total_comparisons' => Comparison::count(),
             'mood_distribution' => $this->moodDistribution(),
             'page_stats' => $this->pageStats(),
+            'event_breakdown' => $this->eventBreakdown(),
         ];
     }
 
@@ -67,13 +75,63 @@ class AdminAnalyticsController extends Controller
             });
     }
 
-    public function users()
+    public function users(Request $request)
     {
-        return User::select('uid', 'sessions_count', 'last_mood', 'quiz_completed', 'last_activity_at')
+        $query = User::select('uid', 'sessions_count', 'last_mood', 'quiz_completed', 'last_activity_at')
             ->orderByDesc('last_activity_at')
-            ->orderByDesc('updated_at')
-            ->limit(100)
+            ->orderByDesc('updated_at');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('uid', 'LIKE', "%{$search}%");
+        }
+
+        return $query->limit(200)->get();
+    }
+
+    public function userDetail(Request $request, string $uid)
+    {
+        $user = User::where('uid', $uid)->firstOrFail();
+        $from = $this->parseDate($request->input('from'));
+        $to = $this->parseDate($request->input('to'));
+        $device = $request->input('device');
+
+        $sessions = $user->sessions()
+            ->when($from, fn ($query) => $query->where('started_at', '>=', $from))
+            ->when($to, fn ($query) => $query->where('started_at', '<=', $to))
+            ->orderByDesc('started_at')
+            ->limit(50)
             ->get();
+
+        $answers = $user->answers()
+            ->with(['question:id,question_text,question_key', 'answer:id,label'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $interactions = $user->interactions()
+            ->when($from, fn ($query) => $query->where('timestamp', '>=', $from))
+            ->when($to, fn ($query) => $query->where('timestamp', '<=', $to))
+            ->when($device, fn ($query) => $query->where('user_agent', 'LIKE', "%{$device}%"))
+            ->orderByDesc('timestamp')
+            ->limit(200)
+            ->get();
+
+        $comparisons = $user->comparisons()
+            ->with(['items.perfume'])
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        $profile = $this->profileService->getProfile($user);
+
+        return [
+            'user' => $user,
+            'profile' => $profile,
+            'sessions' => $sessions,
+            'answers' => $answers,
+            'interactions' => $interactions,
+            'comparisons' => $comparisons,
+        ];
     }
 
     public function comparisons()
@@ -140,6 +198,35 @@ class AdminAnalyticsController extends Controller
                 'total_duration' => round((float) $row->total_duration, 1),
             ];
         })->toArray();
+    }
+
+    private function eventBreakdown(): array
+    {
+        return Interaction::select('event_type', DB::raw('COUNT(*) as total'))
+            ->groupBy('event_type')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'event_type' => $row->event_type,
+                    'total' => (int) $row->total,
+                ];
+            })
+            ->toArray();
+    }
+
+    private function parseDate(?string $value): ?Carbon
+    {
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (\Throwable $th) {
+            return null;
+        }
     }
 
     private function moodColorFor(string $label): string

@@ -6,6 +6,7 @@ import { startSession, endSession } from '../../api/sessionApi';
 import { getQuestions, sendAnswer } from '../../api/questionnaireApi';
 import usePageTracking from '../../hooks/usePageTracking';
 import { ensureUser } from '../../utils/user';
+import useUserProfile from '../../hooks/useUserProfile';
 
 const FALLBACK_QUESTIONS = [
   {
@@ -83,6 +84,7 @@ export default function Questionnaire() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   usePageTracking('questionnaire');
+  const { profile, refreshProfile } = useUserProfile();
 
   const currentQuestion = useMemo(() => questions[step], [questions, step]);
 
@@ -119,6 +121,7 @@ export default function Questionnaire() {
         uid: user.uid,
         ...answerPayload,
       });
+      await refreshProfile();
     } catch (error) {
       console.error(error);
     }
@@ -144,14 +147,26 @@ export default function Questionnaire() {
   }
 
   return (
-    <QuestionStep
-      question={currentQuestion}
-      step={step + 1}
-      total={questions.length}
-      onNext={handleNext}
-      onPrev={handlePrev}
-      isFirst={step === 0}
-      isLast={step === questions.length - 1}
-    />
+    <>
+      {profile && (
+        <div className={`questionnaire-nudge questionnaire-nudge--${profile.segment || 'default'}`}>
+          {profile.segment === 'luxury_high_spender' && 'Wij selecteren alvast de meest exclusieve geuren voor u.'}
+          {profile.segment === 'premium_target' && 'Nog één vraag verwijderd van uw premium selectie.'}
+          {profile.segment === 'low_attention' &&
+            'Blijf erbij – hoe sneller u kiest, hoe beter we u kunnen matchen.'}
+          {!profile.segment && 'Uw antwoorden verfijnen elk advies; neem uw tijd.'}
+        </div>
+      )}
+      <QuestionStep
+        question={currentQuestion}
+        step={step + 1}
+        total={questions.length}
+        onNext={handleNext}
+        onPrev={handlePrev}
+        isFirst={step === 0}
+        isLast={step === questions.length - 1}
+        profileSegment={profile?.segment}
+      />
+    </>
   );
 }

@@ -19,12 +19,21 @@ export default function Home() {
       </p>
 
       <div className="home-buttons">
-        <Link to="/vragenlijst" className="btn-primary">
-        <Link to="/vragenlijst" className="btn-primary" data-track-id="home-start" data-track-event="cta_click">
+        <Link
+          to="/vragenlijst"
+          className="btn-primary"
+          data-track-id="home-start"
+          data-track-event="cta_click"
+        >
           Starten →
         </Link>
 
-        <Link to="/explorer" className="btn-secondary" data-track-id="home-explorer" data-track-event="cta_click">
+        <Link
+          to="/explorer"
+          className="btn-secondary"
+          data-track-id="home-explorer"
+          data-track-event="cta_click"
+        >
           Ontdekken
         </Link>
       </div>

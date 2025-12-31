@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import QuestionCard from '../../components/QuestionCard/QuestionCard';
 import './Questionnaire.css';
 
@@ -10,9 +10,22 @@ export default function QuestionStep({
   onPrev,
   isFirst,
   isLast,
+  profileSegment,
 }) {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [startTime, setStartTime] = useState(Date.now());
+  const answersToRender = useMemo(() => {
+    const list = question.answers || [];
+    if (question.question_key === 'budget') {
+      if (profileSegment === 'luxury_high_spender' || profileSegment === 'premium_target') {
+        return [...list].sort((a, b) => b.label.localeCompare(a.label));
+      }
+      if (profileSegment === 'low_attention') {
+        return [...list].sort((a, b) => a.label.localeCompare(b.label));
+      }
+    }
+    return list;
+  }, [question, profileSegment]);
 
   useEffect(() => {
     setSelectedAnswer(null);
@@ -48,7 +61,7 @@ export default function QuestionStep({
         progress={`${step} / ${total}`}
       >
         <div className="question-step__answers">
-          {(question.answers || []).map((answer) => (
+          {answersToRender.map((answer) => (
             <button
               type="button"
               key={answer.id}

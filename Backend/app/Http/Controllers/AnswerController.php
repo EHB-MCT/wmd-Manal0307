@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserAnswer;
+use App\Services\UserProfileService;
 use Illuminate\Http\Request;
 
 class AnswerController extends Controller
@@ -21,6 +22,10 @@ class AnswerController extends Controller
         'mysterieux & profond' => 'Mystérieux & Profond',
         'mysterieus & diep' => 'Mystérieux & Profond',
     ];
+
+    public function __construct(private UserProfileService $profileService)
+    {
+    }
 
     public function store(Request $request)
     {
@@ -54,6 +59,8 @@ class AnswerController extends Controller
 
         $user->last_activity_at = now();
         $user->save();
+
+        $this->profileService->calculate($user);
 
         return response()->json(['status' => 'ok']);
     }

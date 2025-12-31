@@ -154,6 +154,29 @@ export default function Dashboard() {
                       <p>Nog geen mood-data beschikbaar.</p>
                     )}
                   </div>
+                  <div className="panel">
+                    <h3>Event breakdown</h3>
+                    {overview.event_breakdown?.length ? (
+                      <table className="analytics-table">
+                        <thead>
+                          <tr>
+                            <th>Event</th>
+                            <th>Totaal</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {overview.event_breakdown.map((event) => (
+                            <tr key={event.event_type}>
+                              <td>{event.event_type}</td>
+                              <td>{event.total}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p>Nog geen events geregistreerd.</p>
+                    )}
+                  </div>
                 </div>
 
                 <PageAnalytics stats={overview.page_stats} />
