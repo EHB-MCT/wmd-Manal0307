@@ -1,103 +1,111 @@
-# 🧴 Parfum Advisor – Standards
+# 🧴 Parfum Advisor
 
-## 1. Code style & structuur
-
-- **Programmeertalen**: PHP (Laravel) voor backend, JavaScript (React) voor frontend.  
-- **Indentatie**: 2 spaties per niveau.  
-- **Lijnlengte**: max. 100 tekens per regel.  
-- **Commentaar**: korte, duidelijke beschrijving boven complexe functies of controllers.  
-- **Variabelnamen**:  
-  - camelCase voor JavaScript (`fetchData()`, `topBrandsChart`).  
-  - snake_case voor PHP-variabelen en databasevelden (`total_sales`, `brand_name`).  
-- **Bestandsnamen**: Engels, zonder spaties of accenten (`StatsController.php`, `chartsService.js`).  
-- **Componentnamen (React)**: PascalCase (`SalesChart`, `KpiCard`, `DashboardPage`).  
-- **Code standaarden**:  
-  - **PHP** volgt [PSR-12](https://www.php-fig.org/psr/psr-12/) conventies.  
-  - **React** volgt Airbnb JavaScript Style Guide.  
+Weapon of Math Destruction project dat iedere interactie bijhoudt, gebruikers segmenteert en het admin dashboard realtime voedt – zonder mockdata.
 
 ---
 
-## 2. Bestandsstructuur
+## 0. Start & lokale setup
 
-### 📁 Project root
-parfum-advisor/
-├── docker-compose.yml → definieert alle containers (backend, frontend, database)
-├── backend/ → Laravel-app (PHP)
-│ ├── app/Http/Controllers → API-controllers (logica & berekeningen)
-│ ├── routes/api.php → definities van alle API-routes
-│ ├── database/
-│ │ ├── migrations/ → structuur van de MySQL-tabellen
-│ │ └── seeders/ → fakedata (testverkoopgegevens)
-│ ├── public/ → toegankelijke backendmap
-│ └── .env → configuratie van DB (nooit gecommit)
-│
-├── frontend/ → React-dashboard
-│ ├── src/
-│ │ ├── components/ → herbruikbare UI-elementen (grafieken, kaarten)
-│ │ ├── pages/ → schermen (Dashboard, Overzicht)
-│ │ ├── datas/ → API-calls (axios/fetch)
-│ │ └── App.jsx → hoofdcomponent
-│ └── package.json → npm dependencies
-│
-├── README.md → projectdocumentatie
-└── standards.md → code & ontwikkelstandaarden
+1. **Environment klaarzetten**
+   ```bash
+   cd Backend
+   cp .env.example .env
+   php artisan key:generate
+   ```
+2. **Docker starten**
+   ```bash
+   docker compose up --build
+   docker compose exec backend php artisan migrate
+   ```
+3. **Urls**
+   - Quiz + tracking frontend: `http://localhost:5174`
+   - Admin dashboard: `http://localhost:5174/dashboard`
+   - Backend API: `http://localhost:8080`
+   - phpMyAdmin: `http://localhost:8081`
 
+> Vite vraagt Node.js ≥ 20.19. Versies daaronder geven enkel een waarschuwing.
+
+Alle statistieken, grafieken en tabellen halen hun data rechtstreeks uit MySQL. Seeders leveren enkel vaste entities (vragen, parfums). Sessions, answers, interactions, profiles, comparisons … worden enkel aangemaakt door echte gebruikersacties.
 
 ---
 
-## 3. Git & versiebeheer
+## 1. Structuur
 
-- **Branching**:
-  - `main` → stabiele versie  
-  - `dev` → actieve ontwikkelbranch  
-  - `feature/...` → nieuwe functies (bv. `feature/top-notes-chart`)  
-
----
-
-## 4. Backend & database standaarden
-
-### 🔹 Backend (Laravel / PHP)
-- Alle API-routes worden gedefinieerd in `routes/api.php`.  
-- Controllers volgen **Single Responsibility Principle** (één taak per controller).  
-- Eloquent ORM wordt gebruikt voor databasequeries (`Product::where('brand', 'Chanel')`).  
-- API-responses in **JSON-formaat**, altijd met duidelijke keys (`status`, `data`, `message`).  
-- Foutafhandeling via Laravel’s standaard `Exception Handler`.  
-  
-
-### 🔹 Database (MySQL)
-- Tabelnamen in meervoud: `clients`, `products`, `sales`.  
-- Primaire sleutels als `id` (INT, AUTO_INCREMENT).  
-- Vreemde sleutels:
-  - `client_id` → verwijst naar `clients.id`  
-  - `product_id` → verwijst naar `products.id`  
-- Kolomnamen in snake_case (`brand_name`, `total_sales`).  
-- Datatypes:
-  - `VARCHAR(255)` voor tekst  
-  - `DECIMAL(10,2)` voor prijzen  
-  - `INT` voor hoeveelheden en ID’s  
-  - `DATE` voor verkoopdatum  
-- Seeder (`database/seeders/DatabaseSeeder.php`) genereert testdata (fakedata van parfums).  
+```
+wmd-Manal0307/
+├── docker-compose.yml
+├── Backend/ (Laravel 12)
+│   ├── app/
+│   │   ├── Console/Commands        # bv. sessions:close-stale
+│   │   ├── Http/Controllers        # API endpoints
+│   │   ├── Http/Middleware         # Sanitizing & tracking filters
+│   │   └── Models/Services         # User, Session, Profile, …
+│   ├── database/
+│   │   ├── migrations              # tabellen voor analytics
+│   │   └── seeders                 # parfums, vragen
+│   └── routes/api.php              # REST API
+└── Frontend/ (React + Vite)
+    ├── src/api                     # axios clients
+    ├── src/components              # charts, cards, tracker
+    ├── src/hooks                   # tracking & profile hooks
+    └── src/pages                   # quiz, explorer, dashboard
+```
 
 ---
 
-## 5. Frontend standaarden (React + Chart.js)
-- Componenten zijn modulair en herbruikbaar.  
-- Data wordt opgehaald via `datas/api.js` (fetch of axios).  
-- State management met **React Hooks** (`useState`, `useEffect`).  
-- Grafieken gemaakt met **Chart.js**:   
-- Fouten in API-calls worden visueel afgehandeld met eenvoudige foutmeldingen.  
-- CSS Tailwind
+## 2. Belangrijkste flows
+
+| Flow | Beschrijving |
+| --- | --- |
+| **Tracking layer** | `useInteractionTracker` logt clicks, hovers, focus/blurs, scroll depth, exit intent, idle events, drag/drop, copy enz. Data wordt opgeschoond (max lengtes, strip tags) en opgeslagen in `interactions`. |
+| **Profiel & nudging** | Antwoorden + gedrag voeden `user_profiles` via `UserProfileService`. React toont banners, hersorteert keuzes en highlight CTAs op basis van segment. |
+| **Admin dashboard** | `/admin/overview` + `/admin/users/{uid}` leveren de cijfers. Users tab bevat search, filters (datum/device), detailpanelen met sessies, interacties, antwoorden en vergelijkingen. Alles toont live data. |
+| **Vergelijkingen** | Gebruikers selecteren parfums, duiden een winnaar aan en sturen het naar `/comparisons`. Deze events verschijnen in het dashboard en kunnen beheerd worden. |
 
 ---
 
-## 6. Docker & omgeving
-- Alle services worden beheerd via **Docker Compose**.  
-- `docker-compose.yml` bevat:
-  - `backend` → PHP + Laravel + Apache  
-  - `frontend` → React  
-  - `db` → MySQL 8 met volume  
-  - `phpmyadmin` → databasebeheer op poort 8081  
-- **Voorbeeld van starten:**
+## 3. Sanitizing & datakwaliteit
+
+- Middleware `SanitizeInput` trimt en normaliseert alle niet-GET payloads.
+- `InteractionController` beperkt metadata tot veilige, korte key/value-paren.
+- Artisan command `sessions:close-stale` sluit sessies die langer dan X minuten open staan.
   ```bash
-  docker-compose up -d
+  docker compose exec backend php artisan sessions:close-stale --timeout=60
+  ```
+- Scheduler (`routes/console.php`) draait het commando elk uur automatisch.
 
+---
+
+## 4. Docker services
+
+| Service | Beschrijving |
+| --- | --- |
+| `db` | MySQL 8 met volume `db_data` |
+| `phpmyadmin` | UI op poort 8081 |
+| `backend` | PHP 8.3 + Apache, laadt `.env` waarden van hierboven |
+| `frontend` | Node 22 Alpine, draait `npm run dev` |
+
+Stoppen en opruimen:
+```bash
+docker compose down
+docker compose down -v    # inclusief volumes
+```
+
+---
+
+## 5. Testing & kwaliteitsbewaking
+
+- **PHPUnit**: `docker compose exec backend php artisan test`
+- **Vitest (optioneel)**: `cd Frontend && npm test`
+- Feature test `CloseStaleSessionsTest` zorgt dat het artisan commando correcte sessies afsluit.
+- Gebruik feature branches (`feature/...`) + conventionele commits (`feat:`, `fix:`, `chore:`).
+
+---
+
+## 6. Extra hulpmiddelen
+
+- `Backend/.env.example` bevat exacte docker credentials.
+- `docker compose exec backend php artisan schedule:run` kan gebruikt worden om de scheduler manueel te triggeren.
+- Bronvermeldingen & AI-conversaties documenteren in je eindrapport (WMD-vereiste).
+
+Succes! Verzamel zoveel mogelijk data, analyseer het ethisch en beschrijf de beperkingen in het finale verslag.***
