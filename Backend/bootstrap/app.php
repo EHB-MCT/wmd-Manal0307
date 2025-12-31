@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\CloseStaleSessions;
+use App\Console\Commands\DemoSeedCommand;
 use App\Http\Middleware\SanitizeInput;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,4 +21,5 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withCommands([
         CloseStaleSessions::class,
+        DemoSeedCommand::class,
     ])->create();
